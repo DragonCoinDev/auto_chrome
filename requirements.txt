@@ -1,0 +1,9 @@
+pywin32
+requests
+prompt_toolkit
+xlsxwriter
+xlrd==1.2.0
+prettytable
+pyyaml
+pycristoforo
+selenium

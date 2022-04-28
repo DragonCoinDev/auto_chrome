@@ -1,0 +1,86 @@
+﻿{
+    "version": "1.0.0",
+    "manifest_version": 2,
+    "icons": {
+        "16": "icons/icon_16.png",
+        "48": "icons/icon_48.png",
+        "128": "icons/icon_128.png"
+    },
+    "name": "jxtool",
+    "permissions": [
+        "contextMenus",
+        "tabs",
+        "notifications",
+        "webRequest",
+        "webRequestBlocking",
+        "storage",
+        "http://*/*",
+        "https://*/*",
+        "<all_urls>",
+        "processes",
+        "unlimitedStorage",
+        "cookies",
+        "activeTab",
+        "privacy",
+        "browsingData",
+        "proxy"
+    ],
+    "background": {
+        "scripts": [
+            "background/webrtc.js"
+        ],
+        "persistent": true
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "all_frames": false,
+            "match_about_blank": true,
+            "js": [
+                "contentscripts/bottominfobar.js"
+            ],
+            "run_at": "document_end",
+            "web_accessible_resources": null
+        },
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "all_frames": true,
+            "match_about_blank": true,
+            "js": [
+                "contentscripts/canvas.js"
+            ],
+            "run_at": "document_start",
+            "web_accessible_resources": null
+        },
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "all_frames": true,
+            "match_about_blank": true,
+            "js": [
+                "contentscripts/font.js"
+            ],
+            "run_at": "document_start",
+            "web_accessible_resources": [
+                "contentscripts/font.js"
+            ]
+        },
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "all_frames": true,
+            "match_about_blank": true,
+            "js": [
+                "contentscripts/audio.js"
+            ],
+            "run_at": "document_start",
+            "web_accessible_resources": null
+        }
+    ]
+}
