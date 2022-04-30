@@ -56,13 +56,18 @@ class Auto_script():
         self.matemask_allinone(web_driver)
         #
         web_driver.click((By.XPATH, '//button[text()="TRADE"][1]'))
-        web_driver.send_key((By.XPATH, '//input[@inputmode="decimal"][1]'),'10000')
-        web_driver.send_key((By.XPATH, '//input[@inputmode="decimal"][2]'),'5000')
+        web_driver.send_key((By.XPATH, '//input[@value="0 USDC"]'),'10000')
+        web_driver.send_key((By.XPATH, '//input[@value="0 USDC"]'),'5000')
         web_driver.click((By.XPATH, '//button[text()="Trade Fixed Rate"]'))
         while web_driver.find_elements_xpath('//button[text()="Go to your portfolio"]'):
             self.matemask_allinone(web_driver)
             sleep(3)
         web_driver.click((By.XPATH, '//button[text()="Go to your portfolio"]'))
+        sleep(2)
+        web_driver.open('https://app.voltz.xyz/#/lp-pools') 
+        web_driver.click((By.XPATH, '//tbody/tr[1]/td[5]/button'))
+        
+        
         
         #web_driver.click((By.XPATH, ''))  web_driver.send_key((By.XPATH, ''),'')
 
