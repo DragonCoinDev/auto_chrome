@@ -12,8 +12,8 @@ class Auto_script():
         self.plugin_name = '自动发推'
         self.tweet_pool = []
         self.proxies = {
-                'http': 'http://127.0.0.1:7890',
-                'https': 'http://127.0.0.1:7890',
+                'http': 'http://127.0.0.1:10809',
+                'https': 'http://127.0.0.1:10809',
                 }
         self.monaconft_url = "https://api.monaconft.io/api/discover/latest/"
         self.tweet_id = 0
@@ -30,7 +30,7 @@ class Auto_script():
         self.follow_users = []
 
     def run(self,browserId):
-        self.get_tweet()
+        self.get_tweet(1361362)
         if browserId == None:
             for browserId in self.environment.run_driver_list:
                 print(f'浏览器 {browserId} 开始运行 {self.plugin_name}')

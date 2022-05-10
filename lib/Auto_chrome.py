@@ -15,6 +15,10 @@ class Auto_chrome():
         self.browser_data = browser_data
         self.script_path = script_path
         self.webdriver_path = self.script_path + 'plugin' + os.sep + 'chromedriver.exe'
+        self.wallet_url = {
+            "MetaMask" : 'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html',
+            "Keplt" : "chrome-extension://dmkamcknogkgcdfhhbddcghachkejeap/popup.html" 
+        }
         
         print(self.webdriver_path)
         self.user_path = self.script_path + browser_data['user_path']
@@ -59,7 +63,13 @@ class Auto_chrome():
             #options.add_argument(f"load-extension={self.extension_path + os.sep + 'metamask'}")
             options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4877.2 Safari/537.36')
             self.driver = webdriver.Chrome(options=options,executable_path=self.webdriver_path)
-            _thread.start_new_thread(self.driver.get,(self.startUrl,))
+            def first_open():
+                sleep(5)
+                self.open_new_window()
+                self.driver.get(self.startUrl)
+                #self.driver.switch_to.window(self.driver.window_handles[0])
+            _thread.start_new_thread(first_open,())
+            #_thread.start_new_thread(self.driver.get,('https://www.kyve.network/',))
             #self.driver.get(self.startUrl)
         elif type_ ==  'uc':
             import undetected_chromedriver as webdriver
@@ -439,9 +449,115 @@ class Auto_chrome():
         for handles in all_handles:
             self.driver.switch_to.window(handles)
             print(f'切换到{self.driver.title}')
+            print(self.get_netloc())
             if self.driver.title == title or title in self.driver.title:
                 return True
         return False
 
+    def open_wallet(self,wallet_name):
+        u"""切换到钱包标签页，如果不存在则创建，并返回旧标签页对象ID"""
+        if wallet_name not in self.wallet_url.keys():
+            print(f'目前支持的钱包类型：wallet_url.keys()')
+            return False
+        original_window = self.get_window_handle()
+        if self.switch_tab(wallet_name):
+            self.open(self.wallet_url[wallet_name])
+        else:
+            self.open_tab()
+            self.open(self.wallet_url[wallet_name])
+        return original_window
+
+    def changeNetworkByChainList(self):
+        """
+        通过Chainlist.org切换指定网络
+        :Args:
+            - network_name: string 完整的网络名.
+        :Usage:
+            auto.changeNetworkByChainList('Binance Smart Chain Mainnet')
+        """
+        self.open('https://chainlist.org/')
+        self.js_fours_element((By.XPATH, '//h5[text()="Connect Wallet"]'))   #聚焦元素
+        self.click((By.XPATH, '//h5[text()="Connect Wallet"]'))
+        self.matemask_allinone()
+        # search Network
+        self.click((By.XPATH,"//span[text()='Testnets']"))
+        sleep(1)
+        self.send_key((By.XPATH,'//input[@type="text"]'),network_name)
+        sleep(1)
+        self.click((By.XPATH, "//span[text()='Add to Metamask']"))
+        self.matemask_allinone()
+        sleep(3)
+        self.open_new_window()
+
+    def change_network(self,wallet_name,network_name):
+        if wallet_name not in self.wallet_url.keys():
+            print(f'目前支持的钱包类型：wallet_url.keys()')
+            return False
+        original_window = self.open_wallet(wallet_name)
+        if wallet_name == "Metamask":
+            self.click((By.XPATH, '//div[@class="app-header__network-component-wrapper"]/div'))
+            num = 1
+            while True:
+                xpath = f'//div[@class="network-dropdown-list"]/li[{num}]'
+                #print(xpath)
+                if self.find_elements_xpath(xpath):
+                    if network_name in self.get_text((By.XPATH, xpath)):
+                        self.click((By.XPATH, xpath))
+                        break
+                else:
+                    print('not find')
+                    break
+                num += 1
+        if wallet_name == 'Keplt':
+            js = f'document.evaluate(\'//div[text()="{network_name}"]\', document).iterateNext().click();'
+            self.execjs(js)
 
 
+    def open_testnet(self):
+        # 打开测试网络
+        self.open_new_window()
+        self.open('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#settings')
+        self.click((By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div[2]/div[1]/div/button[2]/div'))
+        self.js_fours_element((By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div[2]/div[7]/div[2]/div/div/div[1]'))
+        self.click((By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div[2]/div[7]/div[2]/div/div/div[1]'))
+        self.open(f'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html')
+
+    def set_password(self,wallet_name,password):
+        if wallet_name not in self.wallet_url.keys():
+            print(f'目前支持的钱包类型：wallet_url.keys()')
+            return False
+        if wallet_name == 'MetaMask':
+            if self.wait_element_bool((By.XPATH, '//*[@id="password"]')):
+                self.send_key((By.XPATH, '//*[@id="password"]'),password)
+                self.click((By.XPATH, '//button[@variant="contained"]'))    #点击解锁按钮
+            else:
+                self.open(self.wallet_url[wallet_name])
+        if wallet_name == 'Keplt':
+            if self.wait_element_bool((By.XPATH, '//*[@name="password"]')):
+                self.send_key((By.XPATH, '//*[@name="password"]'),password)
+                self.click((By.XPATH, '//button[@type="submit"]'))    #点击解锁按钮
+            else:
+                self.open(self.wallet_url[wallet_name])
+
+
+    def matemask_allinone(self):
+        original_window = self.open_wallet('MetaMask')
+        while True:
+            self.F5()
+            sleep(1)
+            url = urlparse(self.get_netloc())
+            if url.fragment == 'unlock':
+                print('run unlock')
+                self.set_password('0xPlay666')
+                self.switch_tab_or_window(original_window)
+            if url.fragment == 'confirmation':
+                print('run confirmation')
+                self.click((By.XPATH, '//button[@class="button btn--rounded btn-primary"]'))
+                self.switch_tab_or_window(original_window)
+            if 'connect' in url.fragment and 'confirm-permissions' in url.fragment:
+                self.click((By.XPATH, '//button[@class="button btn--rounded btn-primary"]'))
+            elif 'connect' in url.fragment:
+                self.click((By.XPATH, '//button[@data-testid="page-container-footer-next"]'))
+            if url.fragment == '':
+                self.switch_tab_or_window(original_window)
+                break

@@ -23,11 +23,12 @@ class Auto_script():
                 #web_driver.front_windows()
                 web_driver.driver.switch_to.window(web_driver.driver.window_handles[0])
                 #web_driver.open_tab()
+                """
                 self.open_metamask(web_driver)
                 self.matemask_allinone(web_driver)
                 self.change_network(web_driver,'Goerli')
                 #self.matemask_allinone(web_driver)
-                """
+                
                 self.changeNetworkByChainList(web_driver, 'Avalanche C-Chain')
                 self.open_metamask(web_driver)
                 #web_driver.max()
@@ -142,7 +143,6 @@ class Auto_script():
 
     def matemask_allinone(self,web_driver):
         original_window = self.open_metamask(web_driver)
-        
         while True:
             web_driver.F5()
             sleep(1)
