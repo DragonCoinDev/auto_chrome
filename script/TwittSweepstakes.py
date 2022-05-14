@@ -48,11 +48,6 @@ class Auto_script():
         self.tw_links = [
             'https://twitter.com/avycnft/status/1523708085021581315',
             'https://twitter.com/takoa/status/1523890580891316226',
-            'https://twitter.com/cubexnft/status/1523726345104019456',
-            'https://twitter.com/OnChainMonkey/status/1523686883494006785',
-            'https://twitter.com/CyberKongmunity/status/1523982187196035077',
-            'https://twitter.com/SneakyninjaNFTs/status/1522979144874688515',
-            'https://twitter.com/Yogapetz/status/1523029923669045248',
             'https://twitter.com/0xElectricsheep/status/1524022318892466182',
             'https://twitter.com/BitCloutCat/status/1523989331865907200',
             'https://twitter.com/GodJiraslove/status/1523903223643664384',

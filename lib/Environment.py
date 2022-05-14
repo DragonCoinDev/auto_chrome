@@ -42,16 +42,16 @@ class Environment():
                     extension.add_fingerprint(browser_data)     #复制指纹插件
                     Auto_chrome(browser_data,self.script_path,'create')
                     self.conf_rw.write(path, browser_data)
-                    print(f'{browser_name}创建成功，用户目录{path}')
+                    print(f'{browser_name}创建成功,用户目录{path}')
                 except:
                     isExists=os.path.exists(path)
                     if  isExists:
                         dir_util.remove_tree(path)
-            else:       #如果目录已经存在，则只更新配置文件
+            else:       #如果目录已经存在,则只更新配置文件
                 os.remove(path + os.sep + 'conf.yaml')
                 self.conf_rw.write(path, browser_data)
                 extension.add_fingerprint(browser_data,'update')
-                print(f'{browser_name}环境目录已存在，跳过')
+                print(f'{browser_name}环境目录已存在,跳过')
         self.load_environment()
         extension.__del__()
         return True
@@ -130,13 +130,13 @@ class Environment():
 
 
 
-    def start(self,browserId_str):      #启动的浏览器序号，多个用逗号分隔，或者用- 来批量启动，例如 1,3-6 会启动1,3,4,5,6'
+    def start(self,browserId_str,openurl='startUrl'):      #启动的浏览器序号,多个用逗号分隔,或者用- 来批量启动,例如 1,3-6 会启动1,3,4,5,6'
         def _start(browserId):
             print(f'开始启动环境 {browserId}')
             #print(self.environment_data)
             browser_data = self.environment_data[browserId]
             proxys = browser_data['account']['proxys']
-            self.environment_data[browserId]['webdriver'] = Auto_chrome(browser_data,self.script_path,self.type_)
+            self.environment_data[browserId]['webdriver'] = Auto_chrome(browser_data,self.script_path,openurl,self.type_)
             self.environment_data[browserId]['status'] = True 
             self.run_driver_list.append(browserId)
             sleep(2)
@@ -179,35 +179,100 @@ class Environment():
         for browserId in self.run_driver_list:
             self.environment_data[browserId]['webdriver'].max() 
 
-    def open(self,url,timeout=10,new_tab=False):
+    def open(self,url,new_tab=False,timeout=10):    #打开URL
+        u"""打开浏览器,判断title是否为预期"""
         for browserId in self.run_driver_list:
             web_driver = self.environment_data[browserId]['webdriver']
             if new_tab:
                web_driver.open_tab()
             web_driver.open(url,'',timeout)
     
-    def click(self,locator):
+    def thread_open(self,url):
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            _thread.start_new_thread(web_driver.open,(url,))
+
+
+
+
+    def find_element(self, locator, timeout=10):
+        u"""定位元素,参数locator为元素"""
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.find_element(locator,timeout)
+
+    def wait_element_bool(self, locator, timeout=10):
+        u"""定位元素,参数locator为原则,返回bool"""
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.wait_element_bool(locator, timeout)
+
+    def click(self,locator):    #点击元素
         for browserId in self.run_driver_list:
             web_driver = self.environment_data[browserId]['webdriver']
             web_driver.click(locator)
 
-    def send_key(self, locator, text):
+    def send_key(self, locator, text):  #往元素填充字符
         for browserId in self.run_driver_list:
             web_driver = self.environment_data[browserId]['webdriver']
             if text  in ['username','password','email','email_passwd','phone','wallet_addres']:
                 text = self.environment_data[browserId]['account'][text]
             #print(f'send key {text}')
-            web_driver.send_key(locator, text)
+            if locator == "":
+                web_driver.AC_send_key(text)
+            else:
+                web_driver.send_key(locator, text)
     
-    def select_by_value(self, locator, value):
+    def select_by_value(self, locator, value):  #通过value定位元素
         for browserId in self.run_driver_list:
             web_driver = self.environment_data[browserId]['webdriver']
             web_driver.select_by_value(locator, value)
 
-    def switch_tab(self):
+    def switch_tab_title(self,title):   #切换到指定title的标签页
         for browserId in self.run_driver_list:
             web_driver = self.environment_data[browserId]['webdriver']
-            web_driver.switch_tab()
+            web_driver.switch_tab_title(title)
+    
+    def switch_tab_url(self,url):   #切换到指定url的标签页
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.switch_tab_url(url)
+    
+    def get_text(self, locator):
+        u"""获取文本内容"""
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            self.environment_data[browserId]['tmp_text'] = web_driver.get_text(locator)
+            print(self.environment_data[browserId]['tmp_text'])
+
+    def exec_js(self,js):
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.execjs(js)
+
+    def open_window(self):
+        u"""打开一个新窗口并切换到新窗口"""
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.open_window()
+    
+    def open_wallet(self,wallet_name):
+        u"""切换到钱包标签页,如果不存在则创建,并返回旧标签页对象ID"""
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            self.environment_data[browserId]['original_window'] = web_driver.open_wallet(wallet_name)
+
+    def keplr_allinone(self):
+        for browserId in self.run_driver_list:
+            print(f'start {browserId}')
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.keplr_allinone()
+    
+    def matemask_allinone(self):
+        for browserId in self.run_driver_list:
+            web_driver = self.environment_data[browserId]['webdriver']
+            web_driver.matemask_allinone()
+
 
     def close_one(self,browserId_str):
         def _close(browserId):
@@ -223,6 +288,8 @@ class Environment():
                     _close(int(browserId))
             else:
                _close(int(tmp_browserId))
+
+
 
 
     def close_all(self):

@@ -8,18 +8,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 
 class Auto_chrome():
-    def __init__(self,browser_data,script_path,type_='se'):
+    def __init__(self,browser_data,script_path,openurl='startUrl',type_='se'):
         self.browser_data = browser_data
         self.script_path = script_path
         self.webdriver_path = self.script_path + 'plugin' + os.sep + 'chromedriver.exe'
         self.wallet_url = {
             "MetaMask" : 'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html',
-            "Keplt" : "chrome-extension://dmkamcknogkgcdfhhbddcghachkejeap/popup.html" 
+            "Keplr" : "chrome-extension://dmkamcknogkgcdfhhbddcghachkejeap/popup.html" 
         }
-        
         print(self.webdriver_path)
         self.user_path = self.script_path + browser_data['user_path']
         self.extension_path = self.script_path + browser_data['user_path'] + os.sep + 'ExtensionPath' + os.sep
@@ -32,7 +33,6 @@ class Auto_chrome():
             options = ChromeOptions()
             if self.proxys != None and self.proxys != '':
                 options.add_argument(f'--proxy-server={self.proxys}')
-            #options.binary_location = self.script_path + 'plugin' + os.sep + 'chrome' + os.sep + 'SunBrowser.exe'
             options.add_argument(f"user-data-dir={self.user_path}")
             #options.add_argument('--ignore-certificate-errors') 
             #options.add_argument('--ignore-ssl-errors') 
@@ -66,11 +66,12 @@ class Auto_chrome():
             def first_open():
                 sleep(5)
                 self.open_new_window()
-                self.driver.get(self.startUrl)
-                #self.driver.switch_to.window(self.driver.window_handles[0])
+                if openurl == "startUrl":
+                    #self.driver.get(self.startUrl)
+                    self.driver.get('https://www.premint.xyz/pop-allowlist-public-raffle/verify/')
+                else:
+                    self.driver.get(openurl)
             _thread.start_new_thread(first_open,())
-            #_thread.start_new_thread(self.driver.get,('https://www.kyve.network/',))
-            #self.driver.get(self.startUrl)
         elif type_ ==  'uc':
             import undetected_chromedriver as webdriver
             self.driver = webdriver.Chrome(suppress_welcome=False,use_subprocess=False,user_data_dir=self.user_path)
@@ -94,7 +95,7 @@ class Auto_chrome():
         self.driver.maximize_window()
 
     def open(self, url, title='', timeout=10):
-        u"""打开浏览器，判断title是否为预期"""
+        u"""打开浏览器,判断title是否为预期"""
         timeout = int(timeout)
         self.driver.get(url)
         try:
@@ -105,7 +106,7 @@ class Auto_chrome():
             print("Error:%s" % msg)
 
     def find_element(self, locator, timeout=10):
-        u"""定位元素，参数locator为原则"""
+        u"""定位元素,参数locator为元素"""
         try:
             element = WebDriverWait(self.driver, timeout, 1).until(EC.presence_of_element_located(locator))
             return element
@@ -113,7 +114,7 @@ class Auto_chrome():
             print("%s 页面未找到元素 %s" % (self, locator))
     
     def wait_element_bool(self, locator, timeout=10):
-        u"""定位元素，参数locator为原则,返回bool"""
+        u"""定位元素,参数locator为原则,返回bool"""
         try:
             element = WebDriverWait(self.driver, timeout, 1).until(EC.presence_of_element_located(locator))
             return True
@@ -152,13 +153,13 @@ class Auto_chrome():
                 WebDriverWait(self.driver, secs, 1).until(EC.presence_of_element_located((By.CSS_SELECTOR, value)))
             else:
                 raise NoSuchElementException(
-                    "找不到元素，请检查语法或元素")
+                    "找不到元素,请检查语法或元素")
         except TimeoutException:
             print("查找元素超时请检查元素")
 
     def get_element(self, css):
         """
-        判断元素定位方式，并返回元素
+        判断元素定位方式,并返回元素
         """
         if "=>" not in css:
             by = "css"  # 如果是css的格式是#aaa,所以在此加入判断如果不包含=>就默认是css传给上面的element_wait判断元素是否存在
@@ -170,7 +171,7 @@ class Auto_chrome():
             value = css.split("=>")[1]
             if by == "" or value == "":
                 raise NameError(
-                    "语法错误，参考: 'id=>kw 或 xpath=>//*[@id='kw'].")
+                    "语法错误,参考: 'id=>kw 或 xpath=>//*[@id='kw'].")
             self.element_wait(by, value)
 
         if by == "id":
@@ -192,7 +193,7 @@ class Auto_chrome():
 
     def get_elements(self, css):
         """
-        判断元素定位方式，并返回元素
+        判断元素定位方式,并返回元素
         """
         if "=>" not in css:
             by = "css"  # 如果是css的格式是#aaa,所以在此加入判断如果不包含=>就默认是css传给上面的element_wait判断元素是否存在
@@ -204,7 +205,7 @@ class Auto_chrome():
             value = css.split("=>")[1]
             if by == "" or value == "":
                 raise NameError(
-                    "语法错误，参考: 'id=>kw 或 xpath=>//*[@id='kw'].")
+                    "语法错误,参考: 'id=>kw 或 xpath=>//*[@id='kw'].")
             self.element_wait(by, value)
 
         if by == "id":
@@ -236,6 +237,12 @@ class Auto_chrome():
         if text  in ['username','password','email','email_passwd','phone','wallet_addres']:
             text = self.browser_data['account'][text]
         element.send_keys(text)
+    
+    def AC_send_key(self,text):
+        actions = ActionChains(self.driver)
+        actions.send_keys(text)
+        actions.send_keys(Keys.ENTER)
+        actions.perform()
 
     def is_text_in_element(self, text, locator, timeout=10):
         u"""判断是否定位到元素"""
@@ -268,7 +275,7 @@ class Auto_chrome():
         return WebDriverWait(self.driver, timeout, 1).until(EC.element_located_selection_state_to_be(locator, selected))
 
     def is_alert_present(self, timeout=10):
-        u"""判断页面有无alert弹出框，有alert返回alert，无alert返回FALSE"""
+        u"""判断页面有无alert弹出框,有alert返回alert,无alert返回FALSE"""
         try:
             return WebDriverWait(self.driver, timeout, 1).until(EC.alert_is_present())
         except:
@@ -276,19 +283,19 @@ class Auto_chrome():
             "No Alert Present"
 
     def is_visibility(self, locator, timeout=10):
-        u"""判断元素是否可见，可见返回本身，不可见返回FALSE"""
+        u"""判断元素是否可见,可见返回本身,不可见返回FALSE"""
         return WebDriverWait(self.driver, timeout, 1).until(EC.visibility_of_element_located(locator))
 
     def is_invisibility(self, locator, timeout=10):
-        u"""判断元素是否可见，不可见，未找到元素返回True"""
+        u"""判断元素是否可见,不可见,未找到元素返回True"""
         return WebDriverWait(self.driver, timeout, 1).until(EC.invisibility_of_element_located(locator))
 
     def is_clickable(self, locator, timeout=10):
-        u"""判断元素是否可以点击，可以点击返回本身，不可点击返回FALSE"""
+        u"""判断元素是否可以点击,可以点击返回本身,不可点击返回FALSE"""
         return WebDriverWait(self.driver, timeout, 1).until(EC.element_to_be_clickable(locator))
 
     def is_located(self, locator, timeout=10):
-        u"""判断元素是否定位到（元素不一定是可见），如果定位到返回Element，未定位到返回FALSE"""
+        u"""判断元素是否定位到（元素不一定是可见）,如果定位到返回Element,未定位到返回FALSE"""
         return WebDriverWait(self.driver, timeout, 1).until(EC.presence_of_element_located(locator))
 
     def move_is_element(self, locator):
@@ -385,7 +392,7 @@ class Auto_chrome():
         self.driver.execute_script(js)
 
     def select_by_index(self, locator, index):
-        u"""通过所有index，0开始,定位元素"""
+        u"""通过所有index,0开始,定位元素"""
         element = self.find_element(locator)
         Select(element).select_by_index(index)
 
@@ -442,32 +449,46 @@ class Auto_chrome():
         u"""前置浏览器窗口"""
         self.driver.switch_to.window(self.driver.current_window_handle)
 
-    def switch_tab(self,title):
+    def switch_tab_title(self,title):
         u"""切换到指定title的标签页"""
         all_handles = self.driver.window_handles
         print(f'当前共{len(all_handles)}个窗口')
         for handles in all_handles:
             self.driver.switch_to.window(handles)
             print(f'切换到{self.driver.title}')
-            print(self.get_netloc())
+            #print(self.get_netloc())
             if self.driver.title == title or title in self.driver.title:
                 return True
         return False
 
+    def switch_tab_url(self,url):
+        u"""切换到指定url的标签页"""
+        all_handles = self.driver.window_handles
+        print(f'当前共{len(all_handles)}个窗口')
+        for handles in all_handles:
+            self.driver.switch_to.window(handles)
+            print(f'切换到{self.driver.current_url}')
+            #print(self.get_netloc())
+            if self.driver.current_url == url or url in self.driver.current_url:
+                return True
+        return False
+
     def open_wallet(self,wallet_name):
-        u"""切换到钱包标签页，如果不存在则创建，并返回旧标签页对象ID"""
+        u"""切换到钱包标签页,如果不存在则创建,并返回旧标签页对象ID"""
         if wallet_name not in self.wallet_url.keys():
-            print(f'目前支持的钱包类型：wallet_url.keys()')
+            print(f'目前支持的钱包类型:wallet_url.keys()')
             return False
         original_window = self.get_window_handle()
-        if self.switch_tab(wallet_name):
+        if self.switch_tab_title(wallet_name):
+            print(1)
             self.open(self.wallet_url[wallet_name])
         else:
+            print(2)
             self.open_tab()
             self.open(self.wallet_url[wallet_name])
         return original_window
 
-    def changeNetworkByChainList(self):
+    def changeNetworkByChainList(self,network_name):
         """
         通过Chainlist.org切换指定网络
         :Args:
@@ -508,7 +529,7 @@ class Auto_chrome():
                     print('not find')
                     break
                 num += 1
-        if wallet_name == 'Keplt':
+        if wallet_name == 'Keplr':
             js = f'document.evaluate(\'//div[text()="{network_name}"]\', document).iterateNext().click();'
             self.execjs(js)
 
@@ -516,7 +537,7 @@ class Auto_chrome():
     def open_testnet(self):
         # 打开测试网络
         self.open_new_window()
-        self.open('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#settings')
+        self.open('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#settings/advanced')
         self.click((By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div[2]/div[1]/div/button[2]/div'))
         self.js_fours_element((By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div[2]/div[7]/div[2]/div/div/div[1]'))
         self.click((By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div[2]/div[2]/div[2]/div[7]/div[2]/div/div/div[1]'))
@@ -524,21 +545,35 @@ class Auto_chrome():
 
     def set_password(self,wallet_name,password):
         if wallet_name not in self.wallet_url.keys():
-            print(f'目前支持的钱包类型：wallet_url.keys()')
+            print(f'目前支持的钱包类型:wallet_url.keys()')
             return False
         if wallet_name == 'MetaMask':
             if self.wait_element_bool((By.XPATH, '//*[@id="password"]')):
                 self.send_key((By.XPATH, '//*[@id="password"]'),password)
                 self.click((By.XPATH, '//button[@variant="contained"]'))    #点击解锁按钮
-            else:
-                self.open(self.wallet_url[wallet_name])
-        if wallet_name == 'Keplt':
-            if self.wait_element_bool((By.XPATH, '//*[@name="password"]')):
-                self.send_key((By.XPATH, '//*[@name="password"]'),password)
+            self.open(self.wallet_url[wallet_name])
+        if wallet_name == 'Keplr':
+            if self.wait_element_bool((By.XPATH, '//input[@name="password"]')):
+                self.send_key((By.XPATH, '//input[@name="password"]'),password)
                 self.click((By.XPATH, '//button[@type="submit"]'))    #点击解锁按钮
-            else:
-                self.open(self.wallet_url[wallet_name])
+                sleep(2)
+            self.open(self.wallet_url[wallet_name])
 
+    def keplr_allinone(self):
+        original_window = self.open_wallet('Keplr')
+        while True:
+            self.F5()
+            sleep(1)
+            url = urlparse(self.get_netloc())
+            print(url)
+            if '/unlock' in url.fragment:
+                print('run unlock')
+                self.set_password('Keplr','0xPlay666')
+                #sleep(3)
+            if url.fragment == '/' or url.scheme != 'chrome-extension':
+                print('succ')
+                self.switch_tab_or_window(original_window)
+                break
 
     def matemask_allinone(self):
         original_window = self.open_wallet('MetaMask')
@@ -548,16 +583,15 @@ class Auto_chrome():
             url = urlparse(self.get_netloc())
             if url.fragment == 'unlock':
                 print('run unlock')
-                self.set_password('0xPlay666')
-                self.switch_tab_or_window(original_window)
+                self.set_password('MetaMask','0xPlay666')
             if url.fragment == 'confirmation':
                 print('run confirmation')
                 self.click((By.XPATH, '//button[@class="button btn--rounded btn-primary"]'))
-                self.switch_tab_or_window(original_window)
             if 'connect' in url.fragment and 'confirm-permissions' in url.fragment:
                 self.click((By.XPATH, '//button[@class="button btn--rounded btn-primary"]'))
             elif 'connect' in url.fragment:
                 self.click((By.XPATH, '//button[@data-testid="page-container-footer-next"]'))
-            if url.fragment == '':
+            if url.fragment == '' or url.scheme != 'chrome-extension':
+                print('succ')
                 self.switch_tab_or_window(original_window)
                 break

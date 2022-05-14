@@ -34,13 +34,19 @@ class Auto_rebot():
     def max(self):
         self.environment.max()
     
+    def open(self,openurl,new_tab=False):
+        self.environment.open(openurl,new_tab)
+
+
     def close(self,browserId_str):
         self.environment.close_one(browserId_str)
     
     def run_plugin(self,plugin_id):
         self.environment.run_plugin(plugin_id)
     
-    
+    def exec_js(self,js):
+        self.environment.exec_js(js)
+
 
 
 if __name__=='__main__':
@@ -77,6 +83,10 @@ if __name__=='__main__':
                 print('请输入需要启动的浏览器序号，多个用逗号分隔，或者用- 来批量启动，例如 1,3-6 会启动1,3,4,5,6')
                 amount_str = session.prompt("输入浏览器序号: ")
                 chrome.start(str(amount_str))
+            if cmd == "discord" :
+                print('请输入需要启动的浏览器序号，多个用逗号分隔，或者用- 来批量启动，例如 1,3-6 会启动1,3,4,5,6')
+                amount_str = session.prompt("输入浏览器序号: ")
+                chrome.start(str(amount_str),'https://discord.com/channels/@me')
             if cmd == "close":
                 print('请输入需要关闭的浏览器序号，多个用逗号分隔，或者用- 来批量启动，例如 1,3-6 会启动1,3,4,5,6')
                 amount_str = session.prompt("输入浏览器序号: ")
@@ -91,6 +101,15 @@ if __name__=='__main__':
                 YN = session.prompt("Yes or No: ")
                 if 'Y' in YN or 'y' in YN:
                     chrome.taskkill()
+            if cmd == "open":
+                openurl = session.prompt("输入请求的url: ")
+                YN = session.prompt("是否打开新的标签页Yes or No: ")
+                if 'Y' in YN or 'y' in YN:
+                    chrome.open(openurl,True)
+                else:
+                     chrome.open(openurl)
+            if cmd == "js":
+                js = session.prompt("输入需要执行的js: ")
             if cmd in ['ls','sort','max'] :  #无参数命令 
                 getattr(chrome, cmd)()
             if cmd == "test" :

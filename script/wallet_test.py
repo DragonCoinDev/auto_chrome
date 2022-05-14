@@ -42,7 +42,7 @@ class Auto_script():
     def open_metamask(self,web_driver):
         original_window = web_driver.get_window_handle()
         print(f'当前窗口{original_window}')
-        if web_driver.switch_tab('MetaMask'):
+        if web_driver.switch_tab_title('MetaMask'):
             url = urlparse(web_driver.get_netloc())
             if url.path != '/home.html':  
                 web_driver.close()
@@ -52,7 +52,7 @@ class Auto_script():
         else:
             web_driver.open_tab()
             web_driver.open(f'chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html')
-            #web_driver.switch_tab('MetaMask')
+            #web_driver.switch_tab_title('MetaMask')
         return original_window
 
     

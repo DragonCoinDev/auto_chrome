@@ -50,11 +50,11 @@ class Auto_script():
                 web_driver.F5()
 
     def open_welcome(self,web_driver):
-        if web_driver.switch_tab('MetaMask'):
+        if web_driver.switch_tab_title('MetaMask'):
             pass
         else:
             web_driver.open('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#initialize/welcome')
-            web_driver.switch_tab('MetaMask')
+            web_driver.switch_tab_title('MetaMask')
     
     def get_mnemonic(self):
         while True:
